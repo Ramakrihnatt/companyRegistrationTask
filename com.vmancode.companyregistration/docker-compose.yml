@@ -1,0 +1,33 @@
+version: '3.9'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: companydb_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ram506
+      MYSQL_DATABASE: companydb
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: company_app
+    restart: always
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/companydb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ram506
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "9292:8080"
+    depends_on:
+      - mysql
+
+volumes:
+  mysql_data:
