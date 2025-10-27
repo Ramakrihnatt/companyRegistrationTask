@@ -1,23 +1,13 @@
-# 1️⃣ Use OpenJDK 17 as base image
-FROM openjdk:17-jdk-alpine
-
-# 2️⃣ Set working directory inside container
+# ---- Stage 1: Build ----
+FROM maven:3.9.6-eclipse-temurin-17 AS builder
 WORKDIR /app
-
-# 3️⃣ Copy Maven wrapper and project files
-COPY mvnw .
-COPY .mvn .mvn
 COPY pom.xml .
 COPY src ./src
+RUN mvn clean package -DskipTests
 
-# 4️⃣ Give execute permission for mvnw
-RUN chmod +x mvnw
-
-# 5️⃣ Build the Spring Boot jar
-RUN ./mvnw clean package -DskipTests
-
-# 6️⃣ Expose port
+# ---- Stage 2: Run ----
+FROM openjdk:17-jdk-alpine
+WORKDIR /app
+COPY --from=builder /app/target/*.jar app.jar
 EXPOSE 8080
-
-# 7️⃣ Run the Spring Boot app
-CMD ["java", "-jar", "target/*.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
